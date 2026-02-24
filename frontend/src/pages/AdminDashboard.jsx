@@ -9,6 +9,7 @@ function AdminDashboard() {
     window.location.href = "/";
   };
   
+  const [pendingTeachers, setPendingTeachers] = useState([]);
   // ================= DEPARTMENT STATE =================
   const [departments, setDepartments] = useState([]);
   const [name, setName] = useState("");
@@ -59,12 +60,22 @@ function AdminDashboard() {
     setSubjects(res.data);
   };
 
+  const fetchPendingTeachers = async () => {
+  try {
+    const res = await api.get("/auth/pending-teachers");
+    setPendingTeachers(res.data);
+  } catch (error) {
+    console.error("Error fetching pending teachers");
+  }
+};
+
   useEffect(() => {
     fetchDepartments();
     fetchYears();
     fetchDivisions();
     fetchTeachers();
     fetchSubjects();
+    fetchPendingTeachers();
   }, []);
 
   // ================= CREATE FUNCTIONS =================
@@ -115,6 +126,20 @@ function AdminDashboard() {
     setSelectedDivision("");
     setSelectedTeacher("");
     fetchSubjects();
+  };
+
+
+  const approveTeacher = async (teacherId) => {
+    try {
+      await api.put(`/auth/approve-teacher/${teacherId}`);
+      alert("Teacher approved successfully");
+
+      // Refresh pending list
+      fetchPendingTeachers();
+
+    } catch (error) {
+      alert("Error approving teacher");
+    }
   };
 
   return (
@@ -232,6 +257,12 @@ function AdminDashboard() {
         ))}
       </ul>
 
+
+
+
+
+
+
       {/* ================= SUBJECT ================= */}
       <h2 style={{ marginTop: "40px" }}>Create Subject</h2>
       <form onSubmit={handleCreateSubject}>
@@ -287,6 +318,33 @@ function AdminDashboard() {
           </li>
         ))}
       </ul>
+
+      
+
+            {/* ================= PENDING TEACHERS ================= */}
+      <div className="card">
+        <h2>Pending Teachers</h2>
+
+        {pendingTeachers.length === 0 ? (
+          <p>No pending teachers</p>
+        ) : (
+          <ul>
+            {pendingTeachers.map((teacher) => (
+              <li key={teacher._id} style={{ marginBottom: "10px" }}>
+                {teacher.name} — {teacher.email}
+                <button
+                  style={{ marginLeft: "10px" }}
+                  onClick={() => approveTeacher(teacher._id)}
+                >
+                  Approve
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+
     </div>
   );
 }

@@ -21,6 +21,15 @@ const userSchema = new mongoose.Schema(
       required: true,
     },
 
+    // ✅ ADD THIS
+    status: {
+      type: String,
+      enum: ["pending", "approved"],
+      default: function () {
+        return this.role === "teacher" ? "pending" : "approved";
+      },
+    },
+
     // Only for students
     department: {
       type: String,

@@ -120,16 +120,14 @@ function StudentDashboard() {
 
         {attendanceData && (
           <div className="card">
-            <h3>Attendance Details</h3>
+            <h3>Attendance Summary</h3>
 
             <p>
-              <strong>Total Sessions:</strong>{" "}
-              {attendanceData.totalSessions}
+              <strong>Total Sessions:</strong> {attendanceData.totalSessions}
             </p>
 
             <p>
-              <strong>Present Sessions:</strong>{" "}
-              {attendanceData.presentSessions}
+              <strong>Present Sessions:</strong> {attendanceData.presentSessions}
             </p>
 
             <p
@@ -143,6 +141,34 @@ function StudentDashboard() {
             >
               Attendance: {attendanceData.percentage}%
             </p>
+
+            <h3 style={{ marginTop: "20px" }}>Attendance History</h3>
+
+            <table border="1" cellPadding="8" style={{ marginTop: "10px" }}>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {attendanceData.history.map((item, index) => (
+                  <tr key={index}>
+                    <td>
+                      {new Date(item.date).toLocaleDateString()}
+                    </td>
+                    <td
+                      style={{
+                        color: item.status === "Present" ? "green" : "red",
+                        fontWeight: "bold"
+                      }}
+                    >
+                      {item.status}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>

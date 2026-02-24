@@ -143,13 +143,26 @@ exports.getStudentAttendance = async (req, res) => {
       return res.status(403).json({ message: "Only students allowed" });
     }
 
-    const totalSessions = await AttendanceSession.countDocuments({
+    // Get all sessions of this subject
+    const sessions = await AttendanceSession.find({
       subject: subjectId
-    });
+    }).sort({ createdAt: 1 });
 
-    const presentSessions = await AttendanceSession.countDocuments({
-      subject: subjectId,
-      studentsPresent: req.user.id
+    const totalSessions = sessions.length;
+
+    let presentSessions = 0;
+
+    const history = sessions.map((session) => {
+    const isPresent = session.studentsPresent.some(
+      id => id.toString() === req.user.id
+      );
+
+      if (isPresent) presentSessions++;
+
+      return {
+        date: session.createdAt,
+        status: isPresent ? "Present" : "Absent"
+      };
     });
 
     const percentage =
@@ -160,11 +173,13 @@ exports.getStudentAttendance = async (req, res) => {
     res.json({
       totalSessions,
       presentSessions,
-      percentage: Number(percentage)
+      percentage: Number(percentage),
+      history
     });
 
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+  console.error("Attendance Error:", error);
+  res.status(500).json({ message: error.message });
   }
 };
 
