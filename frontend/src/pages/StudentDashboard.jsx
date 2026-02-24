@@ -5,17 +5,21 @@ function StudentDashboard() {
   const [subjects, setSubjects] = useState([]);
   const [attendanceData, setAttendanceData] = useState(null);
 
+  const [sessionId, setSessionId] = useState("");
+  const [otp, setOtp] = useState("");
+  const [message, setMessage] = useState("");
+
   useEffect(() => {
     const init = async () => {
       try {
-        // 1️⃣ Get logged-in student info
+        // Get logged-in student info
         const userRes = await api.get("/auth/me");
         const divisionId = userRes.data.division;
 
-        // 2️⃣ Get all subjects
+        // Get all subjects
         const subjectRes = await api.get("/subjects");
 
-        // 3️⃣ Filter subjects by student division
+        // Filter subjects by student division
         const mySubjects = subjectRes.data.filter(
           (sub) => sub.division?._id === divisionId
         );
@@ -29,6 +33,25 @@ function StudentDashboard() {
     init();
   }, []);
 
+  // Mark Attendance
+  const handleMarkAttendance = async (e) => {
+    e.preventDefault();
+
+    try {
+      const res = await api.post("/attendance/mark", {
+        sessionId,
+        otp,
+      });
+
+      setMessage(res.data.message);
+      setSessionId("");
+      setOtp("");
+    } catch (error) {
+      setMessage(error.response?.data?.message || "Error marking attendance");
+    }
+  };
+
+  // View Attendance %
   const fetchAttendance = async (subjectId) => {
     try {
       const res = await api.get(`/attendance/report/${subjectId}`);
@@ -39,64 +62,90 @@ function StudentDashboard() {
   };
 
   return (
-    <div style={{ padding: "40px" }}>
+    <div className="container">
       <h1>Student Dashboard</h1>
 
-      <h2>Your Subjects</h2>
+      {/* ================= MARK ATTENDANCE ================= */}
+      <div className="card">
+        <h2>Mark Attendance</h2>
 
-      {subjects.length === 0 ? (
-        <p>No subjects found</p>
-      ) : (
-        <ul>
-          {subjects.map((sub) => (
-            <li key={sub._id} style={{ marginBottom: "10px" }}>
-              {sub.name} — {sub.division?.name}
-              <button
-                style={{ marginLeft: "10px" }}
-                onClick={() => fetchAttendance(sub._id)}
-              >
-                View Attendance
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+        <form onSubmit={handleMarkAttendance}>
+          <input
+            type="text"
+            placeholder="Enter Session ID"
+            value={sessionId}
+            onChange={(e) => setSessionId(e.target.value)}
+            required
+          />
 
-      {attendanceData && (
-        <div
-          style={{
-            marginTop: "30px",
-            padding: "20px",
-            border: "1px solid black",
-            borderRadius: "8px",
-            maxWidth: "400px"
-          }}
-        >
-          <h3>Attendance Details</h3>
+          <input
+            type="text"
+            placeholder="Enter OTP"
+            value={otp}
+            onChange={(e) => setOtp(e.target.value)}
+            required
+          />
 
-          <p>
-            <strong>Total Sessions:</strong>{" "}
-            {attendanceData.totalSessions}
+          <button type="submit">Mark</button>
+        </form>
+
+        {message && (
+          <p style={{ marginTop: "10px", fontWeight: "bold" }}>
+            {message}
           </p>
+        )}
+      </div>
 
-          <p>
-            <strong>Present Sessions:</strong>{" "}
-            {attendanceData.presentSessions}
-          </p>
+      {/* ================= VIEW ATTENDANCE ================= */}
+      <div className="card">
+        <h2>Your Subjects</h2>
 
-          <p
-            style={{
-              color:
-                attendanceData.percentage < 75
-                  ? "red"
-                  : "green",
-              fontWeight: "bold"
-            }}
-          >
-            Attendance: {attendanceData.percentage}%
-          </p>
-        </div>
-      )}
+        {subjects.length === 0 ? (
+          <p>No subjects found</p>
+        ) : (
+          <ul>
+            {subjects.map((sub) => (
+              <li key={sub._id} style={{ marginBottom: "10px" }}>
+                {sub.name} — {sub.division?.name}
+                <button
+                  style={{ marginLeft: "10px" }}
+                  onClick={() => fetchAttendance(sub._id)}
+                >
+                  View Attendance
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {attendanceData && (
+          <div className="card">
+            <h3>Attendance Details</h3>
+
+            <p>
+              <strong>Total Sessions:</strong>{" "}
+              {attendanceData.totalSessions}
+            </p>
+
+            <p>
+              <strong>Present Sessions:</strong>{" "}
+              {attendanceData.presentSessions}
+            </p>
+
+            <p
+              style={{
+                color:
+                  attendanceData.percentage < 75
+                    ? "red"
+                    : "green",
+                fontWeight: "bold",
+              }}
+            >
+              Attendance: {attendanceData.percentage}%
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

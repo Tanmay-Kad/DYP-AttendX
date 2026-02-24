@@ -8,6 +8,8 @@ function TeacherDashboard() {
     window.location.href = "/";
   };
 
+  const [sessions, setSessions] = useState([]);
+  const [selectedHistorySubject, setSelectedHistorySubject] = useState("");
   const [subjects, setSubjects] = useState([]);
   const [selectedSubject, setSelectedSubject] = useState("");
   const [attendanceData, setAttendanceData] = useState(null);
@@ -76,6 +78,18 @@ function TeacherDashboard() {
     }
   };
 
+
+  const fetchSessions = async (subjectId) => {
+  try {
+    const res = await api.get(`/attendance/subject/${subjectId}`);
+    setSessions(res.data);
+    setSelectedHistorySubject(subjectId);
+  } catch (error) {
+    alert("Error fetching session history");
+  }
+};
+
+
   return (
     <div className="container">
       <h1>Teacher Dashboard</h1>
@@ -142,6 +156,54 @@ function TeacherDashboard() {
                 </li>
               ))}
             </ul>
+          </div>
+        )}
+      </div>
+
+      {/* ================= SESSION HISTORY ================= */}
+      <div className="card">
+        <h2>Attendance History</h2>
+
+        <ul>
+          {subjects.map((sub) => (
+            <li key={sub._id}>
+              {sub.name}
+              <button
+                style={{ marginLeft: "10px" }}
+                onClick={() => fetchSessions(sub._id)}
+              >
+                View Sessions
+              </button>
+            </li>
+          ))}
+        </ul>
+
+        {sessions.length > 0 && (
+          <div className="card">
+            <h3>Session List</h3>
+
+            <table border="1" cellPadding="8">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Time</th>
+                  <th>Students Present</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sessions.map((session) => (
+                  <tr key={session._id}>
+                    <td>
+                      {new Date(session.createdAt).toLocaleDateString()}
+                    </td>
+                    <td>
+                      {new Date(session.createdAt).toLocaleTimeString()}
+                    </td>
+                    <td>{session.studentsPresent.length}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
