@@ -380,3 +380,27 @@ exports.updateSessionAttendance = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+
+
+exports.deleteSession = async (req, res) => {
+  try {
+    const AttendanceSession = require("../models/AttendanceSession");
+
+    const { sessionId } = req.params;
+
+    const session = await AttendanceSession.findById(sessionId);
+
+    if (!session) {
+      return res.status(404).json({ message: "Session not found" });
+    }
+
+    await AttendanceSession.findByIdAndDelete(sessionId);
+
+    res.json({ message: "Session deleted successfully" });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};

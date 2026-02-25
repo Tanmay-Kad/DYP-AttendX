@@ -3,6 +3,8 @@ import api from "../services/api";
 import Navbar from "../components/Navbar";
 
 function TeacherDashboard() {
+
+  const [selectedHistorySubject, setSelectedHistorySubject] = useState("");
   const [subjects, setSubjects] = useState([]);
   const [selectedSubject, setSelectedSubject] = useState("");
   const [attendanceData, setAttendanceData] = useState(null);
@@ -79,15 +81,16 @@ function TeacherDashboard() {
 
   // ================= FETCH SESSIONS =================
   const fetchSessions = async (subjectId) => {
-    try {
-      const res = await api.get(`/attendance/subject/${subjectId}`);
-      setSessions(res.data);
-      setSessionDetails(null);
-      setEditMode(false);
-    } catch (error) {
-      alert("Error fetching session history");
-    }
-  };
+  try {
+    const res = await api.get(`/attendance/subject/${subjectId}`);
+    setSessions(res.data);
+    setSessionDetails(null);
+    setEditMode(false);
+    setSelectedHistorySubject(subjectId); // 👈 ADD THIS
+  } catch (error) {
+    alert("Error fetching session history");
+  }
+};
 
   // ================= FETCH SESSION DETAILS =================
   const fetchSessionDetails = async (sessionId) => {
@@ -137,6 +140,36 @@ function TeacherDashboard() {
       alert("Error updating attendance");
     }
   };
+
+
+
+  const deleteSession = async (sessionId) => {
+  const confirmDelete = window.confirm(
+    "Are you sure you want to delete this session?"
+  );
+
+  if (!confirmDelete) return;
+
+  try {
+    await api.delete(`/attendance/session/${sessionId}`);
+
+    alert("Session deleted successfully");
+
+    // Refresh sessions
+    setSessionDetails(null);
+    setEditMode(false);
+
+    // Re-fetch sessions of selected subject
+    fetchSessions(selectedHistorySubject);
+
+  } catch (error) {
+    alert("Error deleting session");
+  }
+};
+
+
+
+
 
   // ================= DOWNLOAD CSV =================
   const downloadCSV = async (subjectId) => {
@@ -244,6 +277,14 @@ function TeacherDashboard() {
                           onClick={() => fetchSessionDetails(session._id)}
                         >
                           View Students
+                        </button>
+
+                        <button
+                          className="btn-danger"
+                          style={{ marginLeft: "8px" }}
+                          onClick={() => deleteSession(session._id)}
+                        >
+                          Delete
                         </button>
                       </td>
                     </tr>
