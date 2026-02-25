@@ -1,22 +1,18 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
+import Navbar from "../components/Navbar";
 
 function TeacherDashboard() {
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    window.location.href = "/";
-  };
-
-  const [sessions, setSessions] = useState([]);
-  const [selectedHistorySubject, setSelectedHistorySubject] = useState("");
   const [subjects, setSubjects] = useState([]);
   const [selectedSubject, setSelectedSubject] = useState("");
   const [attendanceData, setAttendanceData] = useState(null);
   const [timeLeft, setTimeLeft] = useState(0);
-  const [defaulters, setDefaulters] = useState([]);
 
-  // Fetch teacher subjects
+  const [defaulters, setDefaulters] = useState([]);
+  const [sessions, setSessions] = useState([]);
+  const [sessionDetails, setSessionDetails] = useState(null);
+
+  // ================= FETCH SUBJECTS =================
   const fetchSubjects = async () => {
     try {
       const res = await api.get("/subjects");
@@ -39,7 +35,7 @@ function TeacherDashboard() {
     fetchSubjects();
   }, []);
 
-  // Start Attendance
+  // ================= START ATTENDANCE =================
   const handleStartAttendance = async (e) => {
     e.preventDefault();
 
@@ -68,7 +64,7 @@ function TeacherDashboard() {
     }
   };
 
-  // Fetch Defaulters
+  // ================= FETCH DEFAULTERS =================
   const fetchDefaulters = async (subjectId) => {
     try {
       const res = await api.get(`/attendance/defaulters/${subjectId}`);
@@ -78,136 +74,224 @@ function TeacherDashboard() {
     }
   };
 
-
+  // ================= FETCH SESSIONS =================
   const fetchSessions = async (subjectId) => {
+    try {
+      const res = await api.get(`/attendance/subject/${subjectId}`);
+      setSessions(res.data);
+      setSessionDetails(null);
+    } catch (error) {
+      alert("Error fetching session history");
+    }
+  };
+
+  // ================= FETCH SESSION DETAILS =================
+  const fetchSessionDetails = async (sessionId) => {
+    try {
+      const res = await api.get(`/attendance/session-details/${sessionId}`);
+      setSessionDetails(res.data);
+    } catch (error) {
+      alert("Error fetching session details");
+    }
+  };
+
+
+  const downloadCSV = async (subjectId) => {
   try {
-    const res = await api.get(`/attendance/subject/${subjectId}`);
-    setSessions(res.data);
-    setSelectedHistorySubject(subjectId);
+    const response = await api.get(
+      `/attendance/export/${subjectId}`,
+      { responseType: "blob" }  // VERY IMPORTANT
+    );
+
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "attendance_report.csv");
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
   } catch (error) {
-    alert("Error fetching session history");
+    alert("Error downloading CSV");
   }
 };
 
 
+
   return (
-    <div className="container">
-      <h1>Teacher Dashboard</h1>
+    <>
+      <Navbar />
+      <div className="container">
+        <h1>Teacher Dashboard</h1>
 
-      <button onClick={handleLogout}>Logout</button>
+        {/* ================= START ATTENDANCE ================= */}
+        <div className="card">
+          <h2>Start Attendance</h2>
 
-      {/* ================= START ATTENDANCE ================= */}
-      <div className="card">
-        <h2>Start Attendance</h2>
-
-        <form onSubmit={handleStartAttendance}>
-          <select
-            value={selectedSubject}
-            onChange={(e) => setSelectedSubject(e.target.value)}
-            required
-          >
-            <option value="">Select Subject</option>
-            {subjects.map((sub) => (
-              <option key={sub._id} value={sub._id}>
-                {sub.name} — {sub.division?.name}
-              </option>
-            ))}
-          </select>
-
-          <button type="submit">Start</button>
-        </form>
-
-        {attendanceData && (
-          <div className="card">
-            <h3>Attendance Started ✅</h3>
-            <p><strong>OTP:</strong> {attendanceData.otp}</p>
-            <p><strong>Session ID:</strong> {attendanceData.sessionId}</p>
-            <p>
-              <strong>Expires At:</strong>{" "}
-              {new Date(attendanceData.expiresAt).toLocaleTimeString()}
-            </p>
-            <p><strong>Time Left:</strong> {timeLeft} seconds</p>
-          </div>
-        )}
-      </div>
-
-      {/* ================= DEFAULTER SECTION ================= */}
-      <div className="card">
-        <h2>View Defaulters</h2>
-
-        <ul>
-          {subjects.map((sub) => (
-            <li key={sub._id}>
-              {sub.name}
-              <button onClick={() => fetchDefaulters(sub._id)}>
-                View Defaulters
-              </button>
-            </li>
-          ))}
-        </ul>
-
-        {Array.isArray(defaulters) && defaulters.length > 0 && (
-          <div className="card">
-            <h3>Defaulter List</h3>
-            <ul>
-              {defaulters.map((d, index) => (
-                <li key={index} style={{ color: "red" }}>
-                  {d.student.name} — {d.percentage}%
-                </li>
+          <form onSubmit={handleStartAttendance}>
+            <select
+              value={selectedSubject}
+              onChange={(e) => setSelectedSubject(e.target.value)}
+              required
+            >
+              <option value="">Select Subject</option>
+              {subjects.map((sub) => (
+                <option key={sub._id} value={sub._id}>
+                  {sub.name} — {sub.division?.name}
+                </option>
               ))}
-            </ul>
-          </div>
-        )}
-      </div>
+            </select>
 
-      {/* ================= SESSION HISTORY ================= */}
-      <div className="card">
-        <h2>Attendance History</h2>
+            <button type="submit">Start</button>
+          </form>
 
-        <ul>
+          {attendanceData && (
+            <div className="card">
+              <h3>Attendance Started ✅</h3>
+              <p><strong>OTP:</strong> {attendanceData.otp}</p>
+              <p><strong>Session ID:</strong> {attendanceData.sessionId}</p>
+              <p>
+                <strong>Expires At:</strong>{" "}
+                {new Date(attendanceData.expiresAt).toLocaleTimeString()}
+              </p>
+              <p><strong>Time Left:</strong> {timeLeft} seconds</p>
+            </div>
+          )}
+        </div>
+
+        {/* ================= DEFAULTERS ================= */}
+        <div className="card">
+          <h2>View Defaulters</h2>
+
+          <ul>
+            {subjects.map((sub) => (
+              <li key={sub._id}>
+                {sub.name}
+                <button onClick={() => fetchDefaulters(sub._id)}>
+                  View Defaulters
+                </button>
+              </li>
+            ))}
+          </ul>
+
+          {defaulters.length > 0 && (
+            <div className="card">
+              <h3>Defaulter List</h3>
+              <ul>
+                {defaulters.map((d, index) => (
+                  <li key={index} style={{ color: "red" }}>
+                    {d.student.name} — {d.percentage}%
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+
+        {/* ================= SESSION HISTORY ================= */}
+        <div className="card">
+          <h2>Attendance History</h2>
+
+          <ul>
           {subjects.map((sub) => (
             <li key={sub._id}>
               {sub.name}
+
               <button
                 style={{ marginLeft: "10px" }}
                 onClick={() => fetchSessions(sub._id)}
               >
                 View Sessions
               </button>
+
+              <button
+                style={{ marginLeft: "10px" }}
+                onClick={() => downloadCSV(sub._id)}
+              >
+                Download CSV
+              </button>
             </li>
           ))}
         </ul>
 
-        {sessions.length > 0 && (
-          <div className="card">
-            <h3>Session List</h3>
+          {sessions.length > 0 && (
+            <div className="card">
+              <h3>Session List</h3>
 
-            <table border="1" cellPadding="8">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Time</th>
-                  <th>Students Present</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sessions.map((session) => (
-                  <tr key={session._id}>
-                    <td>
-                      {new Date(session.createdAt).toLocaleDateString()}
-                    </td>
-                    <td>
-                      {new Date(session.createdAt).toLocaleTimeString()}
-                    </td>
-                    <td>{session.studentsPresent.length}</td>
+              <table border="1" cellPadding="8">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Students Present</th>
+                    <th>Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+                <tbody>
+                  {sessions.map((session) => (
+                    <tr key={session._id}>
+                      <td>
+                        {new Date(session.createdAt).toLocaleDateString()}
+                      </td>
+                      <td>
+                        {new Date(session.createdAt).toLocaleTimeString()}
+                      </td>
+                      <td>{session.studentsPresent.length}</td>
+                      <td>
+                        <button
+                          onClick={() => fetchSessionDetails(session._id)}
+                        >
+                          View Students
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* ================= SESSION DETAILS ================= */}
+          {sessionDetails && (
+            <div className="card">
+              <h3>
+                Session Details -{" "}
+                {new Date(sessionDetails.sessionDate).toLocaleString()}
+              </h3>
+
+              <table border="1" cellPadding="8">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sessionDetails.students.map((student) => (
+                    <tr key={student._id}>
+                      <td>{student.name}</td>
+                      <td>{student.email}</td>
+                      <td
+                        style={{
+                          color:
+                            student.status === "Present"
+                              ? "green"
+                              : "red",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        {student.status}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

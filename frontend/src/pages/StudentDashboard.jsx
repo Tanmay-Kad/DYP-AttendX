@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
+import Navbar from "../components/Navbar";
 
 function StudentDashboard() {
   const [subjects, setSubjects] = useState([]);
@@ -62,6 +63,8 @@ function StudentDashboard() {
   };
 
   return (
+    <>
+    <Navbar />
     <div className="container">
       <h1>Student Dashboard</h1>
 
@@ -173,6 +176,7 @@ function StudentDashboard() {
         )}
       </div>
     </div>
+    </>
   );
 }
 

@@ -237,3 +237,113 @@ exports.getDefaulters = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+
+exports.getSessionDetails = async (req, res) => {
+  try {
+    const AttendanceSession = require("../models/AttendanceSession");
+    const Subject = require("../models/Subject");
+    const User = require("../models/User");
+
+    const { sessionId } = req.params;
+
+    const session = await AttendanceSession.findById(sessionId)
+      .populate({
+        path: "subject",
+        populate: { path: "division" }
+      });
+
+    if (!session) {
+      return res.status(404).json({ message: "Session not found" });
+    }
+
+    const divisionId = session.subject.division._id;
+
+    // Get all students in that division
+    const students = await User.find({
+      role: "student",
+      division: divisionId
+    }).select("name email");
+
+    const presentIds = session.studentsPresent.map(id => id.toString());
+
+    const studentList = students.map(student => ({
+      _id: student._id,
+      name: student.name,
+      email: student.email,
+      status: presentIds.includes(student._id.toString())
+        ? "Present"
+        : "Absent"
+    }));
+
+    res.json({
+      sessionDate: session.createdAt,
+      students: studentList
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+const csv = require("json2csv").Parser;
+
+exports.exportAttendanceCSV = async (req, res) => {
+  try {
+    const AttendanceSession = require("../models/AttendanceSession");
+    const Subject = require("../models/Subject");
+    const User = require("../models/User");
+
+    const { subjectId } = req.params;
+
+    const sessions = await AttendanceSession.find({ subject: subjectId });
+
+    if (!sessions.length) {
+      return res.status(404).json({ message: "No sessions found" });
+    }
+
+    const subject = await Subject.findById(subjectId)
+      .populate("division");
+
+    const students = await User.find({
+      role: "student",
+      division: subject.division._id
+    });
+
+    const data = students.map(student => {
+      let presentCount = 0;
+
+      sessions.forEach(session => {
+        if (session.studentsPresent
+            .map(id => id.toString())
+            .includes(student._id.toString())
+        ) {
+          presentCount++;
+        }
+      });
+
+      const percentage = ((presentCount / sessions.length) * 100).toFixed(2);
+
+      return {
+        Name: student.name,
+        Email: student.email,
+        TotalSessions: sessions.length,
+        Present: presentCount,
+        Percentage: percentage
+      };
+    });
+
+    const json2csv = new csv();
+    const csvData = json2csv.parse(data);
+
+    res.header("Content-Type", "text/csv");
+    res.attachment("attendance_report.csv");
+    res.send(csvData);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};

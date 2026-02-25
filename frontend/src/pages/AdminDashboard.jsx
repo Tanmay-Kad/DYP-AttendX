@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
+import Navbar from "../components/Navbar";
 
 function AdminDashboard() {
 
@@ -207,6 +208,8 @@ const deleteSubject = async (subjectId) => {
   };
 
   return (
+    <>
+    <Navbar />
     <div style={{ padding: "40px" }}>
       <h1>Admin Dashboard</h1>
 
@@ -454,6 +457,7 @@ const deleteSubject = async (subjectId) => {
 
 
     </div>
+    </>
   );
 }
 
