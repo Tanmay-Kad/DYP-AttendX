@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const { startAttendance, markAttendance, getSessionsBySubject, getStudentAttendance, getDefaulters, getSessionDetails, exportAttendanceCSV   } = require("../controllers/attendanceController");
+const { startAttendance, markAttendance, getSessionsBySubject, getStudentAttendance, getDefaulters, getSessionDetails, exportAttendanceCSV, updateSessionAttendance    } = require("../controllers/attendanceController");
 const authMiddleware = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
 
@@ -58,4 +58,13 @@ router.get(
   roleMiddleware("teacher"),
   exportAttendanceCSV
 );
+
+
+router.put(
+  "/update-session/:sessionId",
+  authMiddleware,
+  roleMiddleware("teacher"),
+  updateSessionAttendance
+);
+
 module.exports = router;

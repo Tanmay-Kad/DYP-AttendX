@@ -277,6 +277,7 @@ exports.getSessionDetails = async (req, res) => {
     }));
 
     res.json({
+      sessionId: session._id, 
       sessionDate: session.createdAt,
       students: studentList
     });
@@ -341,6 +342,38 @@ exports.exportAttendanceCSV = async (req, res) => {
     res.header("Content-Type", "text/csv");
     res.attachment("attendance_report.csv");
     res.send(csvData);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+exports.updateSessionAttendance = async (req, res) => {
+  try {
+    const AttendanceSession = require("../models/AttendanceSession");
+
+    const { sessionId } = req.params;
+    const { updatedStudents } = req.body;
+    // updatedStudents = [{ studentId, status }]
+
+    const session = await AttendanceSession.findById(sessionId);
+
+    if (!session) {
+      return res.status(404).json({ message: "Session not found" });
+    }
+
+    // Build new studentsPresent array
+    const presentIds = updatedStudents
+      .filter(student => student.status === "Present")
+      .map(student => student.studentId);
+
+    session.studentsPresent = presentIds;
+
+    await session.save();
+
+    res.json({ message: "Attendance updated successfully" });
 
   } catch (error) {
     console.error(error);

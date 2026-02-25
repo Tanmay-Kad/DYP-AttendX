@@ -12,6 +12,9 @@ function TeacherDashboard() {
   const [sessions, setSessions] = useState([]);
   const [sessionDetails, setSessionDetails] = useState(null);
 
+  const [editMode, setEditMode] = useState(false);
+  const [editableStudents, setEditableStudents] = useState([]);
+
   // ================= FETCH SUBJECTS =================
   const fetchSubjects = async () => {
     try {
@@ -80,6 +83,7 @@ function TeacherDashboard() {
       const res = await api.get(`/attendance/subject/${subjectId}`);
       setSessions(res.data);
       setSessionDetails(null);
+      setEditMode(false);
     } catch (error) {
       alert("Error fetching session history");
     }
@@ -90,33 +94,70 @@ function TeacherDashboard() {
     try {
       const res = await api.get(`/attendance/session-details/${sessionId}`);
       setSessionDetails(res.data);
+      setEditableStudents(res.data.students);
+      setEditMode(false);
     } catch (error) {
       alert("Error fetching session details");
     }
   };
 
-
-  const downloadCSV = async (subjectId) => {
-  try {
-    const response = await api.get(
-      `/attendance/export/${subjectId}`,
-      { responseType: "blob" }  // VERY IMPORTANT
+  // ================= TOGGLE STATUS =================
+  const toggleStatus = (studentId) => {
+    setEditableStudents((prev) =>
+      prev.map((student) =>
+        student._id === studentId
+          ? {
+              ...student,
+              status:
+                student.status === "Present" ? "Absent" : "Present",
+            }
+          : student
+      )
     );
+  };
 
-    const url = window.URL.createObjectURL(new Blob([response.data]));
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", "attendance_report.csv");
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+  // ================= SAVE UPDATED ATTENDANCE =================
+  const saveAttendanceChanges = async () => {
+    try {
+      await api.put(
+        `/attendance/update-session/${sessionDetails.sessionId}`,
+        {
+          updatedStudents: editableStudents.map((s) => ({
+            studentId: s._id,
+            status: s.status,
+          })),
+        }
+      );
 
-  } catch (error) {
-    alert("Error downloading CSV");
-  }
-};
+      alert("Attendance updated successfully");
+      setEditMode(false);
+      fetchSessionDetails(sessionDetails.sessionId);
 
+    } catch (error) {
+      alert("Error updating attendance");
+    }
+  };
 
+  // ================= DOWNLOAD CSV =================
+  const downloadCSV = async (subjectId) => {
+    try {
+      const response = await api.get(
+        `/attendance/export/${subjectId}`,
+        { responseType: "blob" }
+      );
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "attendance_report.csv");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+    } catch (error) {
+      alert("Error downloading CSV");
+    }
+  };
 
   return (
     <>
@@ -124,7 +165,7 @@ function TeacherDashboard() {
       <div className="container">
         <h1>Teacher Dashboard</h1>
 
-        {/* ================= START ATTENDANCE ================= */}
+        {/* START ATTENDANCE */}
         <div className="card">
           <h2>Start Attendance</h2>
 
@@ -150,69 +191,34 @@ function TeacherDashboard() {
               <h3>Attendance Started ✅</h3>
               <p><strong>OTP:</strong> {attendanceData.otp}</p>
               <p><strong>Session ID:</strong> {attendanceData.sessionId}</p>
-              <p>
-                <strong>Expires At:</strong>{" "}
-                {new Date(attendanceData.expiresAt).toLocaleTimeString()}
-              </p>
               <p><strong>Time Left:</strong> {timeLeft} seconds</p>
             </div>
           )}
         </div>
 
-        {/* ================= DEFAULTERS ================= */}
+        {/* SESSION HISTORY */}
         <div className="card">
-          <h2>View Defaulters</h2>
+          <h2>Attendance History</h2>
 
           <ul>
             {subjects.map((sub) => (
               <li key={sub._id}>
                 {sub.name}
-                <button onClick={() => fetchDefaulters(sub._id)}>
-                  View Defaulters
+                <button
+                  style={{ marginLeft: "10px" }}
+                  onClick={() => fetchSessions(sub._id)}
+                >
+                  View Sessions
+                </button>
+                <button
+                  style={{ marginLeft: "10px" }}
+                  onClick={() => downloadCSV(sub._id)}
+                >
+                  Download CSV
                 </button>
               </li>
             ))}
           </ul>
-
-          {defaulters.length > 0 && (
-            <div className="card">
-              <h3>Defaulter List</h3>
-              <ul>
-                {defaulters.map((d, index) => (
-                  <li key={index} style={{ color: "red" }}>
-                    {d.student.name} — {d.percentage}%
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
-
-        {/* ================= SESSION HISTORY ================= */}
-        <div className="card">
-          <h2>Attendance History</h2>
-
-          <ul>
-          {subjects.map((sub) => (
-            <li key={sub._id}>
-              {sub.name}
-
-              <button
-                style={{ marginLeft: "10px" }}
-                onClick={() => fetchSessions(sub._id)}
-              >
-                View Sessions
-              </button>
-
-              <button
-                style={{ marginLeft: "10px" }}
-                onClick={() => downloadCSV(sub._id)}
-              >
-                Download CSV
-              </button>
-            </li>
-          ))}
-        </ul>
 
           {sessions.length > 0 && (
             <div className="card">
@@ -230,12 +236,8 @@ function TeacherDashboard() {
                 <tbody>
                   {sessions.map((session) => (
                     <tr key={session._id}>
-                      <td>
-                        {new Date(session.createdAt).toLocaleDateString()}
-                      </td>
-                      <td>
-                        {new Date(session.createdAt).toLocaleTimeString()}
-                      </td>
+                      <td>{new Date(session.createdAt).toLocaleDateString()}</td>
+                      <td>{new Date(session.createdAt).toLocaleTimeString()}</td>
                       <td>{session.studentsPresent.length}</td>
                       <td>
                         <button
@@ -251,13 +253,30 @@ function TeacherDashboard() {
             </div>
           )}
 
-          {/* ================= SESSION DETAILS ================= */}
+          {/* SESSION DETAILS WITH EDIT MODE */}
           {sessionDetails && (
             <div className="card">
               <h3>
                 Session Details -{" "}
                 {new Date(sessionDetails.sessionDate).toLocaleString()}
               </h3>
+
+              <button onClick={() => setEditMode(!editMode)}>
+                {editMode ? "Cancel Edit" : "Edit Attendance"}
+              </button>
+
+              {editMode && (
+                <button
+                  onClick={saveAttendanceChanges}
+                  style={{
+                    marginLeft: "10px",
+                    backgroundColor: "green",
+                    color: "white",
+                  }}
+                >
+                  Save Changes
+                </button>
+              )}
 
               <table border="1" cellPadding="8">
                 <thead>
@@ -268,23 +287,29 @@ function TeacherDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {sessionDetails.students.map((student) => (
-                    <tr key={student._id}>
-                      <td>{student.name}</td>
-                      <td>{student.email}</td>
-                      <td
-                        style={{
-                          color:
-                            student.status === "Present"
-                              ? "green"
-                              : "red",
-                          fontWeight: "bold",
-                        }}
-                      >
-                        {student.status}
-                      </td>
-                    </tr>
-                  ))}
+                  {(editMode ? editableStudents : sessionDetails.students).map(
+                    (student) => (
+                      <tr key={student._id}>
+                        <td>{student.name}</td>
+                        <td>{student.email}</td>
+                        <td
+                          onClick={() =>
+                            editMode && toggleStatus(student._id)
+                          }
+                          style={{
+                            cursor: editMode ? "pointer" : "default",
+                            color:
+                              student.status === "Present"
+                                ? "green"
+                                : "red",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          {student.status}
+                        </td>
+                      </tr>
+                    )
+                  )}
                 </tbody>
               </table>
             </div>
