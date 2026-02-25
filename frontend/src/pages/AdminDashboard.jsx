@@ -208,257 +208,307 @@ const deleteSubject = async (subjectId) => {
   };
 
   return (
-    <>
+  <>
     <Navbar />
-    <div style={{ padding: "40px" }}>
+    <div className="container">
       <h1>Admin Dashboard</h1>
 
-      <button
-      onClick={handleLogout}
-      style={{ marginBottom: "20px" }}
-      >
-        Logout
-      </button>
-
       {/* ================= DEPARTMENT ================= */}
-      <h2>Create Department</h2>
-      <form onSubmit={handleCreateDepartment}>
-        <input
-          type="text"
-          placeholder="Department Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
-        <input
-          type="text"
-          placeholder="Department Code"
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          required
-        />
-        <button type="submit">Create</button>
-      </form>
+      <div className="card">
+        <h2>Create Department</h2>
+        <form onSubmit={handleCreateDepartment}>
+          <input
+            type="text"
+            placeholder="Department Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+          <input
+            type="text"
+            placeholder="Department Code"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            required
+          />
+          <button type="submit">Create</button>
+        </form>
 
-      <ul>
-        {departments.map((dept) => (
-          <li key={dept._id} style={{ marginBottom: "10px" }}>
-            {dept.name} ({dept.code})
-            <button
-              style={{ marginLeft: "10px", backgroundColor: "red" }}
-              onClick={() => deleteDepartment(dept._id)}
-            >
-              Delete
-            </button>
-          </li>
-        ))}
-      </ul>
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Code</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {departments.map((dept) => (
+              <tr key={dept._id}>
+                <td>{dept.name}</td>
+                <td>{dept.code}</td>
+                <td>
+                  <button
+                    className="btn-danger"
+                    onClick={() => deleteDepartment(dept._id)}
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {/* ================= YEAR ================= */}
-      <h2 style={{ marginTop: "40px" }}>Create Year</h2>
-      <form onSubmit={handleCreateYear}>
-        <input
-          type="text"
-          placeholder="Year Name"
-          value={yearName}
-          onChange={(e) => setYearName(e.target.value)}
-          required
-        />
-        <input
-          type="number"
-          placeholder="Order"
-          value={order}
-          onChange={(e) => setOrder(e.target.value)}
-          required
-        />
-        <button type="submit">Create</button>
-      </form>
+      <div className="card">
+        <h2>Create Year</h2>
+        <form onSubmit={handleCreateYear}>
+          <input
+            type="text"
+            placeholder="Year Name"
+            value={yearName}
+            onChange={(e) => setYearName(e.target.value)}
+            required
+          />
+          <input
+            type="number"
+            placeholder="Order"
+            value={order}
+            onChange={(e) => setOrder(e.target.value)}
+            required
+          />
+          <button type="submit">Create</button>
+        </form>
 
-      <ul>
-        {years.map((year) => (
-          <li key={year._id}>
-            {year.name} (Order: {year.order})
-          </li>
-        ))}
-      </ul>
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Order</th>
+            </tr>
+          </thead>
+          <tbody>
+            {years.map((year) => (
+              <tr key={year._id}>
+                <td>{year.name}</td>
+                <td>{year.order}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {/* ================= DIVISION ================= */}
-      <h2 style={{ marginTop: "40px" }}>Create Division</h2>
-      <form onSubmit={handleCreateDivision}>
-        <select
-          value={selectedDept}
-          onChange={(e) => setSelectedDept(e.target.value)}
-          required
-        >
-          <option value="">Select Department</option>
-          {departments.map((dept) => (
-            <option key={dept._id} value={dept._id}>
-              {dept.name}
-            </option>
-          ))}
-        </select>
+      <div className="card">
+        <h2>Create Division</h2>
+        <form onSubmit={handleCreateDivision}>
+          <select
+            value={selectedDept}
+            onChange={(e) => setSelectedDept(e.target.value)}
+            required
+          >
+            <option value="">Select Department</option>
+            {departments.map((dept) => (
+              <option key={dept._id} value={dept._id}>
+                {dept.name}
+              </option>
+            ))}
+          </select>
 
-        <select
-          value={selectedYear}
-          onChange={(e) => setSelectedYear(e.target.value)}
-          required
-        >
-          <option value="">Select Year</option>
-          {years.map((year) => (
-            <option key={year._id} value={year._id}>
-              {year.name}
-            </option>
-          ))}
-        </select>
+          <select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+            required
+          >
+            <option value="">Select Year</option>
+            {years.map((year) => (
+              <option key={year._id} value={year._id}>
+                {year.name}
+              </option>
+            ))}
+          </select>
 
-        <input
-          type="text"
-          placeholder="Division Name"
-          value={divisionName}
-          onChange={(e) => setDivisionName(e.target.value)}
-          required
-        />
+          <input
+            type="text"
+            placeholder="Division Name"
+            value={divisionName}
+            onChange={(e) => setDivisionName(e.target.value)}
+            required
+          />
 
-        <button type="submit">Create</button>
-      </form>
+          <button type="submit">Create</button>
+        </form>
 
-      <ul>
-        {divisions.map((div) => (
-          <li key={div._id} style={{ marginBottom: "10px" }}>
-            {div.name} — {div.department?.name} — {div.year?.name}
-            <button
-              style={{ marginLeft: "10px", backgroundColor: "red" }}
-              onClick={() => deleteDivision(div._id)}
-            >
-              Delete
-            </button>
-          </li>
-        ))}
-      </ul>
-
-
-
-
-
-
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Department</th>
+              <th>Year</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {divisions.map((div) => (
+              <tr key={div._id}>
+                <td>{div.name}</td>
+                <td>{div.department?.name}</td>
+                <td>{div.year?.name}</td>
+                <td>
+                  <button
+                    className="btn-danger"
+                    onClick={() => deleteDivision(div._id)}
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {/* ================= SUBJECT ================= */}
-      <h2 style={{ marginTop: "40px" }}>Create Subject</h2>
-      <form onSubmit={handleCreateSubject}>
-        <input
-          type="text"
-          placeholder="Subject Name"
-          value={subjectName}
-          onChange={(e) => setSubjectName(e.target.value)}
-          required
-        />
+      <div className="card">
+        <h2>Create Subject</h2>
+        <form onSubmit={handleCreateSubject}>
+          <input
+            type="text"
+            placeholder="Subject Name"
+            value={subjectName}
+            onChange={(e) => setSubjectName(e.target.value)}
+            required
+          />
 
-        <input
-          type="text"
-          placeholder="Subject Code"
-          value={subjectCode}
-          onChange={(e) => setSubjectCode(e.target.value)}
-          required
-        />
+          <input
+            type="text"
+            placeholder="Subject Code"
+            value={subjectCode}
+            onChange={(e) => setSubjectCode(e.target.value)}
+            required
+          />
 
-        <select
-          value={selectedDivision}
-          onChange={(e) => setSelectedDivision(e.target.value)}
-          required
-        >
-          <option value="">Select Division</option>
-          {divisions.map((div) => (
-            <option key={div._id} value={div._id}>
-              {div.name} — {div.department?.name} — {div.year?.name}
-            </option>
-          ))}
-        </select>
+          <select
+            value={selectedDivision}
+            onChange={(e) => setSelectedDivision(e.target.value)}
+            required
+          >
+            <option value="">Select Division</option>
+            {divisions.map((div) => (
+              <option key={div._id} value={div._id}>
+                {div.name}
+              </option>
+            ))}
+          </select>
 
-        <select
-          value={selectedTeacher}
-          onChange={(e) => setSelectedTeacher(e.target.value)}
-          required
-        >
-          <option value="">Select Teacher</option>
-          {teachers.map((teacher) => (
-            <option key={teacher._id} value={teacher._id}>
-              {teacher.name}
-            </option>
-          ))}
-        </select>
+          <select
+            value={selectedTeacher}
+            onChange={(e) => setSelectedTeacher(e.target.value)}
+            required
+          >
+            <option value="">Select Teacher</option>
+            {teachers.map((teacher) => (
+              <option key={teacher._id} value={teacher._id}>
+                {teacher.name}
+              </option>
+            ))}
+          </select>
 
-        <button type="submit">Create</button>
-      </form>
+          <button type="submit">Create</button>
+        </form>
 
-      <ul>
-        {subjects.map((sub) => (
-          <li key={sub._id} style={{ marginBottom: "10px" }}>
-            {sub.name} — {sub.teacher?.name} — {sub.division?.name}
-            <button
-              style={{ marginLeft: "10px", backgroundColor: "red" }}
-              onClick={() => deleteSubject(sub._id)}
-            >
-              Delete
-            </button>
-          </li>
-        ))}
-      </ul>
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Teacher</th>
+              <th>Division</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {subjects.map((sub) => (
+              <tr key={sub._id}>
+                <td>{sub.name}</td>
+                <td>{sub.teacher?.name}</td>
+                <td>{sub.division?.name}</td>
+                <td>
+                  <button
+                    className="btn-danger"
+                    onClick={() => deleteSubject(sub._id)}
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-      
-
-            {/* ================= PENDING TEACHERS ================= */}
+      {/* ================= TEACHERS ================= */}
       <div className="card">
         <h2>Pending Teachers</h2>
-
-        {pendingTeachers.length === 0 ? (
-          <p>No pending teachers</p>
-        ) : (
-          <ul>
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
             {pendingTeachers.map((teacher) => (
-              <li key={teacher._id} style={{ marginBottom: "10px" }}>
-                {teacher.name} — {teacher.email}
-                <button
-                  style={{ marginLeft: "10px" }}
-                  onClick={() => approveTeacher(teacher._id)}
-                >
-                  Approve
-                </button>
-              </li>
+              <tr key={teacher._id}>
+                <td>{teacher.name}</td>
+                <td>{teacher.email}</td>
+                <td>
+                  <button
+                    className="btn-success"
+                    onClick={() => approveTeacher(teacher._id)}
+                  >
+                    Approve
+                  </button>
+                </td>
+              </tr>
             ))}
-          </ul>
-        )}
+          </tbody>
+        </table>
       </div>
 
-
-
-
-      {/* ================= APPROVED TEACHERS ================= */}
       <div className="card">
         <h2>Approved Teachers</h2>
-
-        {approvedTeachers.length === 0 ? (
-          <p>No approved teachers</p>
-        ) : (
-          <ul>
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
             {approvedTeachers.map((teacher) => (
-              <li key={teacher._id} style={{ marginBottom: "10px" }}>
-                {teacher.name} — {teacher.email}
-                <button
-                  style={{ marginLeft: "10px", backgroundColor: "red" }}
-                  onClick={() => removeTeacher(teacher._id)}
-                >
-                  Remove
-                </button>
-              </li>
+              <tr key={teacher._id}>
+                <td>{teacher.name}</td>
+                <td>{teacher.email}</td>
+                <td>
+                  <button
+                    className="btn-danger"
+                    onClick={() => removeTeacher(teacher._id)}
+                  >
+                    Remove
+                  </button>
+                </td>
+              </tr>
             ))}
-          </ul>
-        )}
+          </tbody>
+        </table>
       </div>
-
-
     </div>
-    </>
-  );
+  </>
+);
 }
 
 export default AdminDashboard;

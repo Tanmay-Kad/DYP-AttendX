@@ -13,7 +13,12 @@ function Navbar() {
   return (
     <nav style={styles.navbar}>
       <div style={styles.left}>
-        <h2 style={styles.logo}>DYP-AttendX</h2>
+        <img
+          src="/assets/logo.png"   // make sure logo is inside public/assets
+          alt="College Logo"
+          style={styles.logoImg}
+        />
+        <h2 style={styles.logoText}>DYP-AttendX</h2>
       </div>
 
       <div style={styles.right}>
@@ -55,9 +60,16 @@ const styles = {
   left: {
     display: "flex",
     alignItems: "center",
+    gap: "12px",
   },
-  logo: {
+  logoImg: {
+    height: "40px",
+    borderRadius: "6px", // optional
+  },
+  logoText: {
     margin: 0,
+    fontWeight: "bold",
+    letterSpacing: "1px",
   },
   right: {
     display: "flex",
@@ -76,6 +88,7 @@ const styles = {
     padding: "6px 12px",
     cursor: "pointer",
     fontWeight: "bold",
+    borderRadius: "6px",
   },
 };
 
