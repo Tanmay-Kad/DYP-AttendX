@@ -7,7 +7,8 @@ const {
   getTeachers,
   getMe,
   getPendingTeachers,
-  approveTeacher
+  approveTeacher,
+  deleteTeacher
 } = require("../controllers/authController");
 
 const authMiddleware = require("../middleware/authMiddleware");
@@ -44,6 +45,15 @@ router.put(
   require("../middleware/authMiddleware"),
   require("../middleware/roleMiddleware")("admin"),
   approveTeacher
+);
+
+
+// Admin - Delete Teacher
+router.delete(
+  "/delete-teacher/:teacherId",
+  require("../middleware/authMiddleware"),
+  require("../middleware/roleMiddleware")("admin"),
+  deleteTeacher
 );
 
 module.exports = router;

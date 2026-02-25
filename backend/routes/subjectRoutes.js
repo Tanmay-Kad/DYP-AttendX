@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const { createSubject, getSubjects } = require("../controllers/subjectController");
+const { createSubject, getSubjects, deleteSubject } = require("../controllers/subjectController");
 const authMiddleware = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
 
@@ -14,6 +14,13 @@ router.post(
   authMiddleware,
   roleMiddleware("admin"),
   createSubject
+);
+
+router.delete(
+  "/:subjectId",
+  authMiddleware,
+  roleMiddleware("admin"),
+  deleteSubject
 );
 
 module.exports = router;

@@ -53,3 +53,24 @@ exports.getSubjects = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+
+exports.deleteSubject = async (req, res) => {
+  try {
+    const Subject = require("../models/Subject");
+    const { subjectId } = req.params;
+
+    const subject = await Subject.findById(subjectId);
+
+    if (!subject) {
+      return res.status(404).json({ message: "Subject not found" });
+    }
+
+    await subject.deleteOne();
+
+    res.json({ message: "Subject deleted successfully" });
+
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};

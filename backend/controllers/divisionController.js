@@ -46,3 +46,25 @@ exports.getDivisions = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+
+
+exports.deleteDivision = async (req, res) => {
+  try {
+    const Division = require("../models/Division");
+    const { divisionId } = req.params;
+
+    const division = await Division.findById(divisionId);
+
+    if (!division) {
+      return res.status(404).json({ message: "Division not found" });
+    }
+
+    await division.deleteOne();
+
+    res.json({ message: "Division deleted successfully" });
+
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};

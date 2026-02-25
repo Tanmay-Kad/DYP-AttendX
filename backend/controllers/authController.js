@@ -76,10 +76,15 @@ exports.login = async (req, res) => {
 // ================= GET ALL TEACHERS (Admin) =================
 exports.getTeachers = async (req, res) => {
   try {
-    const teachers = await User.find({ role: "teacher" })
-      .select("-password");
+    const User = require("../models/User");
+
+    const teachers = await User.find({
+      role: "teacher",
+      status: "approved"
+    }).select("-password");
 
     res.json(teachers);
+
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }
@@ -170,6 +175,28 @@ exports.approveTeacher = async (req, res) => {
     await teacher.save();
 
     res.json({ message: "Teacher approved successfully" });
+
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+
+exports.deleteTeacher = async (req, res) => {
+  try {
+    const User = require("../models/User");
+    const { teacherId } = req.params;
+
+    const teacher = await User.findById(teacherId);
+
+    if (!teacher || teacher.role !== "teacher") {
+      return res.status(404).json({ message: "Teacher not found" });
+    }
+
+    await teacher.deleteOne();
+
+    res.json({ message: "Teacher removed successfully" });
 
   } catch (error) {
     res.status(500).json({ message: "Server error" });

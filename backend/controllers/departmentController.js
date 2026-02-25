@@ -34,3 +34,26 @@ exports.getDepartments = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+
+
+
+exports.deleteDepartment = async (req, res) => {
+  try {
+    const Department = require("../models/Department");
+    const { departmentId } = req.params;
+
+    const department = await Department.findById(departmentId);
+
+    if (!department) {
+      return res.status(404).json({ message: "Department not found" });
+    }
+
+    await department.deleteOne();
+
+    res.json({ message: "Department deleted successfully" });
+
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};

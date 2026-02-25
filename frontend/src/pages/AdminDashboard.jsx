@@ -9,6 +9,7 @@ function AdminDashboard() {
     window.location.href = "/";
   };
   
+  const [approvedTeachers, setApprovedTeachers] = useState([]);
   const [pendingTeachers, setPendingTeachers] = useState([]);
   // ================= DEPARTMENT STATE =================
   const [departments, setDepartments] = useState([]);
@@ -69,6 +70,68 @@ function AdminDashboard() {
   }
 };
 
+const fetchApprovedTeachers = async () => {
+  try {
+    const res = await api.get("/auth/teachers");
+    setApprovedTeachers(res.data);
+  } catch (error) {
+    console.error("Error fetching approved teachers");
+  }
+};
+
+
+const removeTeacher = async (teacherId) => {
+  try {
+    await api.delete(`/auth/delete-teacher/${teacherId}`);
+    alert("Teacher removed successfully");
+
+    // Refresh list
+    fetchApprovedTeachers();
+    fetchPendingTeachers();
+
+  } catch (error) {
+    alert("Error removing teacher");
+  }
+};
+
+
+const deleteDepartment = async (departmentId) => {
+  try {
+    await api.delete(`/departments/${departmentId}`);
+    alert("Department deleted successfully");
+
+    fetchDepartments(); // refresh list
+  } catch (error) {
+    alert("Error deleting department");
+  }
+};
+
+
+
+const deleteDivision = async (divisionId) => {
+  try {
+    await api.delete(`/divisions/${divisionId}`);
+    alert("Division deleted successfully");
+
+    fetchDivisions(); // refresh list
+  } catch (error) {
+    alert("Error deleting division");
+  }
+};
+
+
+const deleteSubject = async (subjectId) => {
+  try {
+    await api.delete(`/subjects/${subjectId}`);
+    alert("Subject deleted successfully");
+
+    fetchSubjects(); // refresh list
+  } catch (error) {
+    alert("Error deleting subject");
+  }
+};
+
+
   useEffect(() => {
     fetchDepartments();
     fetchYears();
@@ -76,6 +139,7 @@ function AdminDashboard() {
     fetchTeachers();
     fetchSubjects();
     fetchPendingTeachers();
+    fetchApprovedTeachers();
   }, []);
 
   // ================= CREATE FUNCTIONS =================
@@ -175,8 +239,14 @@ function AdminDashboard() {
 
       <ul>
         {departments.map((dept) => (
-          <li key={dept._id}>
+          <li key={dept._id} style={{ marginBottom: "10px" }}>
             {dept.name} ({dept.code})
+            <button
+              style={{ marginLeft: "10px", backgroundColor: "red" }}
+              onClick={() => deleteDepartment(dept._id)}
+            >
+              Delete
+            </button>
           </li>
         ))}
       </ul>
@@ -251,8 +321,14 @@ function AdminDashboard() {
 
       <ul>
         {divisions.map((div) => (
-          <li key={div._id}>
+          <li key={div._id} style={{ marginBottom: "10px" }}>
             {div.name} — {div.department?.name} — {div.year?.name}
+            <button
+              style={{ marginLeft: "10px", backgroundColor: "red" }}
+              onClick={() => deleteDivision(div._id)}
+            >
+              Delete
+            </button>
           </li>
         ))}
       </ul>
@@ -313,8 +389,14 @@ function AdminDashboard() {
 
       <ul>
         {subjects.map((sub) => (
-          <li key={sub._id}>
+          <li key={sub._id} style={{ marginBottom: "10px" }}>
             {sub.name} — {sub.teacher?.name} — {sub.division?.name}
+            <button
+              style={{ marginLeft: "10px", backgroundColor: "red" }}
+              onClick={() => deleteSubject(sub._id)}
+            >
+              Delete
+            </button>
           </li>
         ))}
       </ul>
@@ -337,6 +419,32 @@ function AdminDashboard() {
                   onClick={() => approveTeacher(teacher._id)}
                 >
                   Approve
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+
+
+
+      {/* ================= APPROVED TEACHERS ================= */}
+      <div className="card">
+        <h2>Approved Teachers</h2>
+
+        {approvedTeachers.length === 0 ? (
+          <p>No approved teachers</p>
+        ) : (
+          <ul>
+            {approvedTeachers.map((teacher) => (
+              <li key={teacher._id} style={{ marginBottom: "10px" }}>
+                {teacher.name} — {teacher.email}
+                <button
+                  style={{ marginLeft: "10px", backgroundColor: "red" }}
+                  onClick={() => removeTeacher(teacher._id)}
+                >
+                  Remove
                 </button>
               </li>
             ))}

@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const { createDepartment, getDepartments } = require("../controllers/departmentController");
+const { createDepartment, getDepartments, deleteDepartment } = require("../controllers/departmentController");
 const authMiddleware = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
 
@@ -14,6 +14,13 @@ router.post(
   authMiddleware,
   roleMiddleware("admin"),
   createDepartment
+);
+
+router.delete(
+  "/:departmentId",
+  authMiddleware,
+  roleMiddleware("admin"),
+  deleteDepartment
 );
 
 module.exports = router;
