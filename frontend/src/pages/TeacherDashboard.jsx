@@ -4,11 +4,15 @@ import Navbar from "../components/Navbar";
 
 function TeacherDashboard() {
 
+  const [totalSessions, setTotalSessions] = useState(0);
+  const [totalDefaulters, setTotalDefaulters] = useState(0);
   const [selectedHistorySubject, setSelectedHistorySubject] = useState("");
   const [subjects, setSubjects] = useState([]);
   const [selectedSubject, setSelectedSubject] = useState("");
   const [attendanceData, setAttendanceData] = useState(null);
   const [timeLeft, setTimeLeft] = useState(0);
+  const [selectedDefaulterSubject, setSelectedDefaulterSubject] = useState("");
+  const [defaulterList, setDefaulterList] = useState([]);
 
   const [defaulters, setDefaulters] = useState([]);
   const [sessions, setSessions] = useState([]);
@@ -31,6 +35,33 @@ function TeacherDashboard() {
       );
 
       setSubjects(mySubjects);
+
+      // Calculate total sessions and total defaulters
+let sessionCount = 0;
+let defaulterSet = new Set(); // To avoid duplicates
+
+for (let sub of mySubjects) {
+  try {
+    // Count sessions
+    const sessionRes = await api.get(`/attendance/subject/${sub._id}`);
+    sessionCount += sessionRes.data.length;
+
+    // Get defaulters
+    const defaulterRes = await api.get(`/attendance/defaulters/${sub._id}`);
+
+    defaulterRes.data.forEach((d) => {
+      defaulterSet.add(d.student._id);
+    });
+
+  } catch (error) {
+    console.error("Error calculating stats");
+  }
+}
+
+setTotalSessions(sessionCount);
+setTotalDefaulters(defaulterSet.size);
+
+setTotalSessions(sessionCount);
     } catch (error) {
       console.error("Error fetching subjects");
     }
@@ -103,6 +134,24 @@ function TeacherDashboard() {
       alert("Error fetching session details");
     }
   };
+
+
+
+
+
+  const fetchSubjectDefaulters = async (subjectId) => {
+  try {
+    const res = await api.get(`/attendance/defaulters/${subjectId}`);
+    setDefaulterList(res.data);
+    setSelectedDefaulterSubject(subjectId);
+  } catch (error) {
+    alert("Error fetching defaulters");
+  }
+};
+
+
+
+
 
   // ================= TOGGLE STATUS =================
   const toggleStatus = (studentId) => {
@@ -198,6 +247,26 @@ function TeacherDashboard() {
       <div className="container">
         <h1>Teacher Dashboard</h1>
 
+
+        <div className="dashboard-stats">
+        <div className="stat-card">
+          <h3>Total Subjects</h3>
+          <h2>{subjects.length}</h2>
+        </div>
+
+        <div className="stat-card">
+          <h3>Total Sessions</h3>
+          <h2>{totalSessions}</h2>
+        </div>
+
+        <div className="stat-card">
+          <h3>Defaulters</h3>
+          <h2>{totalDefaulters}</h2>
+        </div>
+      </div>
+
+
+
         {/* START ATTENDANCE */}
         <div className="card">
           <h2>Start Attendance</h2>
@@ -236,7 +305,7 @@ function TeacherDashboard() {
           <ul>
             {subjects.map((sub) => (
               <li key={sub._id}>
-                {sub.name}
+                {sub.name} — {sub.division?.name}
                 <button
                   style={{ marginLeft: "10px" }}
                   onClick={() => fetchSessions(sub._id)}
@@ -355,7 +424,61 @@ function TeacherDashboard() {
               </table>
             </div>
           )}
+
+
+
+          
+
         </div>
+
+        {/* ================= DEFAULTERS SECTION ================= */}
+          <div className="card">
+            <h2>Defaulters</h2>
+
+            <ul>
+              {subjects.map((sub) => (
+                <li key={sub._id} style={{ marginBottom: "10px" }}>
+                  {sub.name}
+                  <button
+                    style={{ marginLeft: "10px" }}
+                    onClick={() => fetchSubjectDefaulters(sub._id)}
+                  >
+                    View Defaulters
+                  </button>
+                </li>
+              ))}
+            </ul>
+
+            {defaulterList.length > 0 && (
+              <div className="card" style={{ marginTop: "15px" }}>
+                <h3>Defaulter List</h3>
+
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>Attendance %</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {defaulterList.map((d, index) => (
+                      <tr key={index}>
+                        <td>{d.student.name}</td>
+                        <td>{d.student.email}</td>
+                        <td style={{ color: "red", fontWeight: "bold" }}>
+                          {d.percentage}%
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        <footer style={{ textAlign: "center", padding: "15px", color: "#777" }}>
+          © 2026 DYP-AttendX | Developed by Tanmay Kad
+        </footer>
       </div>
     </>
   );

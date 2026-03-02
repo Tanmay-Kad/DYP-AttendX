@@ -26,7 +26,7 @@ exports.startAttendance = async (req, res) => {
     }
 
     const otp = generateOTP();
-    const expiresAt = new Date(Date.now() + 30 * 1000); // 30 seconds
+    const expiresAt = new Date(Date.now() + 45 * 1000); // 30 seconds
 
     const session = await AttendanceSession.create({
       subject: subjectId,

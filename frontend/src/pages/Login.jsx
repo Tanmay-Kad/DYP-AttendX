@@ -1,5 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
+import { Link } from "react-router-dom";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -35,34 +36,34 @@ function Login() {
     };
 
   return (
-    <div style={{ padding: "40px" }}>
-      <h2>Login</h2>
-      <form onSubmit={handleLogin}>
-        <div>
+    <div className="auth-container">
+      <div className="auth-card">
+        <h2>DYP-AttendX</h2>
+        <img src="/assets/logo.png" style={{ height: "60px", marginBottom: "10px" }} />
+        <form onSubmit={handleLogin}>
           <input
             type="email"
-            placeholder="Enter Email"
+            placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-        </div>
-        <br />
-        <div>
+
           <input
             type="password"
-            placeholder="Enter Password"
+            placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
+
+          <button type="submit">Login</button>
+        </form>
+
+        <div className="auth-footer">
+          Don’t have an account? <Link to="/register">Register</Link>
         </div>
-        <br />
-        <button type="submit">Login</button>
-        <p>
-          Don't have an account? <a href="/register">Register</a>
-        </p>
-      </form>
+      </div>
     </div>
   );
 }

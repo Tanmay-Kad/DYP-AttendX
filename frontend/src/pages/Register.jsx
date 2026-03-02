@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
+import { Link } from "react-router-dom";
 
 function Register() {
   const [name, setName] = useState("");
@@ -41,60 +42,60 @@ function Register() {
       await api.post("/auth/register", payload);
 
       alert("Registration successful");
+
       setName("");
       setEmail("");
       setPassword("");
       setSelectedDivision("");
-
     } catch (error) {
       alert(error.response?.data?.message || "Registration failed");
     }
   };
 
   return (
-    <div style={{ padding: "40px" }}>
-      <h1>Register</h1>
+    <div className="auth-container">
+      <div className="auth-card">
+        <h2>Create Account</h2>
 
-      <form onSubmit={handleRegister}>
-        <div>
+        <form onSubmit={handleRegister}>
           <input
             type="text"
-            placeholder="Enter Name"
+            placeholder="Name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
           />
-        </div>
 
-        <div>
           <input
             type="email"
-            placeholder="Enter Email"
+            placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-        </div>
 
-        <div>
           <input
             type="password"
-            placeholder="Enter Password"
+            placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-        </div>
 
-        <div>
-          <select value={role} onChange={(e) => setRole(e.target.value)}>
+          <select
+            value={role}
+            onChange={(e) => {
+              setRole(e.target.value);
+              setSelectedDivision(""); // reset when role changes
+            }}
+            required
+          >
             <option value="student">Student</option>
             <option value="teacher">Teacher</option>
           </select>
-        </div>
 
-        {role === "student" && (
-          <div>
+          {/* ✅ Division dropdown appears only for students */}
+          {role === "student" && (
             <select
               value={selectedDivision}
               onChange={(e) => setSelectedDivision(e.target.value)}
@@ -103,15 +104,19 @@ function Register() {
               <option value="">Select Division</option>
               {divisions.map((div) => (
                 <option key={div._id} value={div._id}>
-                  {div.name} — {div.department?.name} — {div.year?.name}
+                  {div.department?.code} - {div.year?.name} - {div.name}
                 </option>
               ))}
             </select>
-          </div>
-        )}
+          )}
 
-        <button type="submit">Register</button>
-      </form>
+          <button type="submit">Register</button>
+        </form>
+
+        <div className="auth-footer">
+          Already have an account? <Link to="/">Login</Link>
+        </div>
+      </div>
     </div>
   );
 }

@@ -3,6 +3,9 @@ import api from "../services/api";
 import Navbar from "../components/Navbar";
 
 function StudentDashboard() {
+
+  const [totalSessions, setTotalSessions] = useState(0);
+  const [overallPercentage, setOverallPercentage] = useState(0);
   const [subjects, setSubjects] = useState([]);
   const [attendanceData, setAttendanceData] = useState(null);
 
@@ -26,6 +29,35 @@ function StudentDashboard() {
         );
 
         setSubjects(mySubjects);
+
+
+
+        let sessionCount = 0;
+        let totalPresent = 0;
+
+        for (let sub of mySubjects) {
+          try {
+            const res = await api.get(`/attendance/report/${sub._id}`);
+
+            sessionCount += res.data.totalSessions;
+            totalPresent += res.data.presentSessions;
+
+          } catch (error) {
+            console.error("Error calculating student stats");
+          }
+        }
+
+        setTotalSessions(sessionCount);
+
+        const percentage =
+          sessionCount === 0
+            ? 0
+            : ((totalPresent / sessionCount) * 100).toFixed(1);
+
+        setOverallPercentage(percentage);
+
+
+
       } catch (error) {
         console.error("Error loading student dashboard");
       }
@@ -67,6 +99,25 @@ function StudentDashboard() {
     <Navbar />
     <div className="container">
       <h1>Student Dashboard</h1>
+
+      <div className="dashboard-stats">
+        <div className="stat-card">
+          <h3>Total Subjects</h3>
+          <h2>{subjects.length}</h2>
+        </div>
+
+        <div className="stat-card">
+          <h3>Total Sessions</h3>
+          <h2>{totalSessions}</h2>
+        </div>
+
+        <div className="stat-card">
+          <h3>Overall Attendance</h3>
+          <h2 style={{ color: overallPercentage < 75 ? "red" : "#1976d2" }}>
+            {overallPercentage}%
+          </h2>
+        </div>
+      </div>
 
       {/* ================= MARK ATTENDANCE ================= */}
       <div className="card">
@@ -175,6 +226,9 @@ function StudentDashboard() {
           </div>
         )}
       </div>
+      <footer style={{ textAlign: "center", padding: "15px", color: "#777" }}>
+        © 2026 DYP-AttendX | Developed by Tanmay Kad
+      </footer>
     </div>
     </>
   );

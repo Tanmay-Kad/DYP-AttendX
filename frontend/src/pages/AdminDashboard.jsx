@@ -10,6 +10,8 @@ function AdminDashboard() {
     window.location.href = "/";
   };
   
+
+  const [totalStudents, setTotalStudents] = useState(0);
   const [approvedTeachers, setApprovedTeachers] = useState([]);
   const [pendingTeachers, setPendingTeachers] = useState([]);
   // ================= DEPARTMENT STATE =================
@@ -81,6 +83,16 @@ const fetchApprovedTeachers = async () => {
 };
 
 
+const fetchStudents = async () => {
+  try {
+    const res = await api.get("/users/students");
+    setTotalStudents(res.data.length);
+  } catch (error) {
+    console.error("Error fetching students");
+  }
+};
+
+
 const removeTeacher = async (teacherId) => {
   try {
     await api.delete(`/auth/delete-teacher/${teacherId}`);
@@ -141,6 +153,7 @@ const deleteSubject = async (subjectId) => {
     fetchSubjects();
     fetchPendingTeachers();
     fetchApprovedTeachers();
+    fetchStudents();
   }, []);
 
   // ================= CREATE FUNCTIONS =================
@@ -212,6 +225,35 @@ const deleteSubject = async (subjectId) => {
     <Navbar />
     <div className="container">
       <h1>Admin Dashboard</h1>
+
+
+
+
+      <div className="dashboard-stats">
+        <div className="stat-card">
+          <h3>Departments</h3>
+          <h2>{departments.length}</h2>
+        </div>
+
+        <div className="stat-card">
+          <h3>Teachers</h3>
+          <h2>{approvedTeachers.length}</h2>
+        </div>
+
+        <div className="stat-card">
+          <h3>Students</h3>
+          <h2>{totalStudents}</h2>
+        </div>
+
+        <div className="stat-card">
+          <h3>Subjects</h3>
+          <h2>{subjects.length}</h2>
+        </div>
+      </div>
+
+
+
+
 
       {/* ================= DEPARTMENT ================= */}
       <div className="card">
@@ -398,7 +440,7 @@ const deleteSubject = async (subjectId) => {
             <option value="">Select Division</option>
             {divisions.map((div) => (
               <option key={div._id} value={div._id}>
-                {div.name}
+                {div.department?.code} - {div.year?.name} - {div.name}
               </option>
             ))}
           </select>
@@ -433,7 +475,7 @@ const deleteSubject = async (subjectId) => {
               <tr key={sub._id}>
                 <td>{sub.name}</td>
                 <td>{sub.teacher?.name}</td>
-                <td>{sub.division?.name}</td>
+                <td>{sub.division?.department?.code} — {sub.division?.year?.name} — {sub.division?.name}</td>
                 <td>
                   <button
                     className="btn-danger"
@@ -506,6 +548,9 @@ const deleteSubject = async (subjectId) => {
           </tbody>
         </table>
       </div>
+      <footer style={{ textAlign: "center", padding: "15px", color: "#777" }}>
+        © 2026 DYP-AttendX | Developed by Tanmay Kad
+      </footer>
     </div>
   </>
 );
