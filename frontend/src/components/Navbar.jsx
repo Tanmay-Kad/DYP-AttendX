@@ -16,43 +16,40 @@ function Navbar() {
 
   return (
     <>
-      <nav style={styles.navbar}>
-        <div style={styles.left}>
-          <img
-            src="/assets/logo.png"
-            alt="College Logo"
-            style={styles.logoImg}
-          />
-          <h2 style={styles.logoText}>DYP-AttendX</h2>
+      <nav className="app-navbar">
+        <div className="app-navbar-left">
+          <img src="/assets/logo.png" alt="College Logo" className="app-logo" />
+          <h2 className="app-logo-text">DYP-AttendX</h2>
         </div>
 
-        <div style={styles.right}>
+        <div className="app-navbar-right">
           {role === "admin" && (
-            <Link style={styles.link} to="/admin">
+            <Link className="app-nav-link" to="/admin">
               Admin Dashboard
             </Link>
           )}
 
           {role === "teacher" && (
-            <Link style={styles.link} to="/teacher">
+            <Link className="app-nav-link" to="/teacher">
               Teacher Dashboard
             </Link>
           )}
 
           {role === "student" && (
-            <Link style={styles.link} to="/student">
+            <Link className="app-nav-link" to="/student">
               Student Dashboard
             </Link>
           )}
 
-          {/* Profile Icon */}
           <FaUserCircle
             size={26}
-            style={styles.profileIcon}
+            className="app-profile-icon"
             onClick={() => setShowProfile(true)}
+            aria-label="Open profile panel"
+            role="button"
           />
 
-          <button style={styles.logoutBtn} onClick={handleLogout}>
+          <button className="app-logout-btn" onClick={handleLogout}>
             Logout
           </button>
         </div>
@@ -64,56 +61,5 @@ function Navbar() {
     </>
   );
 }
-
-const styles = {
-  navbar: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: "15px 30px",
-    backgroundColor: "#1976d2",
-    color: "white",
-    position: "sticky",
-    top: 0,
-    zIndex: 1000,
-    boxShadow: "0 2px 8px rgba(0,0,0,50.15)",
-  },
-  left: {
-    display: "flex",
-    alignItems: "center",
-    gap: "12px",
-  },
-  logoImg: {
-    height: "40px",
-    borderRadius: "2px",
-  },
-  logoText: {
-    margin: 0,
-    fontWeight: "bold",
-    letterSpacing: "1px",
-  },
-  right: {
-    display: "flex",
-    alignItems: "center",
-    gap: "20px",
-  },
-  link: {
-    color: "white",
-    textDecoration: "none",
-    fontWeight: "500",
-  },
-  profileIcon: {
-    cursor: "pointer",
-  },
-  logoutBtn: {
-    backgroundColor: "white",
-    color: "#1976d2",
-    border: "none",
-    padding: "6px 12px",
-    cursor: "pointer",
-    fontWeight: "bold",
-    borderRadius: "6px",
-  },
-};
 
 export default Navbar;

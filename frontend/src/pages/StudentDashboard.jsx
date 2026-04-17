@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
 import Navbar from "../components/Navbar";
+import { useToast } from "../components/ToastContext";
 
 function StudentDashboard() {
+  const { showToast } = useToast();
 
   const [totalSessions, setTotalSessions] = useState(0);
   const [overallPercentage, setOverallPercentage] = useState(0);
@@ -90,7 +92,7 @@ function StudentDashboard() {
       const res = await api.get(`/attendance/report/${subjectId}`);
       setAttendanceData(res.data);
     } catch (error) {
-      alert("Error fetching attendance");
+      showToast("Error fetching attendance", "error");
     }
   };
 
@@ -113,7 +115,7 @@ function StudentDashboard() {
 
         <div className="stat-card">
           <h3>Overall Attendance</h3>
-          <h2 style={{ color: overallPercentage < 75 ? "red" : "#1976d2" }}>
+          <h2 className={overallPercentage < 75 ? "text-danger" : "text-primary"}>
             {overallPercentage}%
           </h2>
         </div>
@@ -144,7 +146,7 @@ function StudentDashboard() {
         </form>
 
         {message && (
-          <p style={{ marginTop: "10px", fontWeight: "bold" }}>
+          <p className="message-text">
             {message}
           </p>
         )}
@@ -159,14 +161,16 @@ function StudentDashboard() {
         ) : (
           <ul>
             {subjects.map((sub) => (
-              <li key={sub._id} style={{ marginBottom: "10px" }}>
+              <li key={sub._id}>
                 {sub.name} — {sub.division?.name}
-                <button
-                  style={{ marginLeft: "10px" }}
-                  onClick={() => fetchAttendance(sub._id)}
-                >
-                  View Attendance
-                </button>
+                <span className="inline-actions">
+                  <button
+                    className="ml-10"
+                    onClick={() => fetchAttendance(sub._id)}
+                  >
+                    View Attendance
+                  </button>
+                </span>
               </li>
             ))}
           </ul>
@@ -185,20 +189,14 @@ function StudentDashboard() {
             </p>
 
             <p
-              style={{
-                color:
-                  attendanceData.percentage < 75
-                    ? "red"
-                    : "green",
-                fontWeight: "bold",
-              }}
+              className={attendanceData.percentage < 75 ? "text-danger bold" : "text-success bold"}
             >
               Attendance: {attendanceData.percentage}%
             </p>
 
-            <h3 style={{ marginTop: "20px" }}>Attendance History</h3>
+            <h3 className="mt-20">Attendance History</h3>
 
-            <table border="1" cellPadding="8" style={{ marginTop: "10px" }}>
+            <table className="mt-10">
               <thead>
                 <tr>
                   <th>Date</th>
@@ -212,10 +210,7 @@ function StudentDashboard() {
                       {new Date(item.date).toLocaleDateString()}
                     </td>
                     <td
-                      style={{
-                        color: item.status === "Present" ? "green" : "red",
-                        fontWeight: "bold"
-                      }}
+                      className={item.status === "Present" ? "text-success bold" : "text-danger bold"}
                     >
                       {item.status}
                     </td>
@@ -226,7 +221,7 @@ function StudentDashboard() {
           </div>
         )}
       </div>
-      <footer style={{ textAlign: "center", padding: "15px", color: "#777" }}>
+      <footer>
         © 2026 DYP-AttendX | Developed by Tanmay Kad
       </footer>
     </div>

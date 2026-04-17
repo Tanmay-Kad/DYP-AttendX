@@ -1,10 +1,12 @@
 import { useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import { useToast } from "../components/ToastContext";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { showToast } = useToast();
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -19,7 +21,7 @@ function Login() {
             localStorage.setItem("token", res.data.token);
             localStorage.setItem("role", res.data.role);
 
-            alert("Login successful");
+            showToast("Login successful", "success");
 
             // Redirect based on role
             if (res.data.role === "admin") {
@@ -31,17 +33,20 @@ function Login() {
             }
 
         } catch (error) {
-            alert(error.response?.data?.message || "Login failed");
+            showToast(error.response?.data?.message || "Login failed", "error");
         }
     };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <h2>DYP-AttendX</h2>
-        <img src="/assets/logo.png" style={{ height: "60px", marginBottom: "10px" }} />
-        <form onSubmit={handleLogin}>
+    <div className="auth-container login-theme">
+      <div className="auth-card login-card">
+        <p className="auth-eyebrow login-eyebrow">Smart Attendance Platform</p>
+        <h2>Welcome Back</h2>
+        <p className="auth-subtext login-subtext">Sign in to continue to DYP-AttendX</p>
+        <img className="auth-logo login-logo" src="/assets/logo.png" alt="DYP-AttendX logo" />
+        <form className="auth-form login-form" onSubmit={handleLogin}>
           <input
+            className="auth-field login-field"
             type="email"
             placeholder="Email"
             value={email}
@@ -50,6 +55,7 @@ function Login() {
           />
 
           <input
+            className="auth-field login-field"
             type="password"
             placeholder="Password"
             value={password}
@@ -57,10 +63,10 @@ function Login() {
             required
           />
 
-          <button type="submit">Login</button>
+          <button className="auth-btn login-btn" type="submit">Login</button>
         </form>
 
-        <div className="auth-footer">
+        <div className="auth-footer login-footer">
           Don’t have an account? <Link to="/register">Register</Link>
         </div>
       </div>

@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
 import Navbar from "../components/Navbar";
+import { useToast } from "../components/ToastContext";
+import { useConfirm } from "../components/ConfirmContext";
 
 function TeacherDashboard() {
+  const { showToast } = useToast();
+  const { confirm } = useConfirm();
 
   const [totalSessions, setTotalSessions] = useState(0);
   const [totalDefaulters, setTotalDefaulters] = useState(0);
@@ -96,7 +100,7 @@ setTotalSessions(sessionCount);
         }
       }, 1000);
     } catch (error) {
-      alert(error.response?.data?.message || "Error starting attendance");
+      showToast(error.response?.data?.message || "Error starting attendance", "error");
     }
   };
 
@@ -106,20 +110,28 @@ setTotalSessions(sessionCount);
       const res = await api.get(`/attendance/defaulters/${subjectId}`);
       setDefaulters(res.data);
     } catch (error) {
-      alert("Error fetching defaulters");
+      showToast("Error fetching defaulters", "error");
     }
   };
 
   // ================= FETCH SESSIONS =================
   const fetchSessions = async (subjectId) => {
+  if (selectedHistorySubject === subjectId && sessions.length > 0) {
+    setSessions([]);
+    setSessionDetails(null);
+    setEditMode(false);
+    setSelectedHistorySubject("");
+    return;
+  }
+
   try {
     const res = await api.get(`/attendance/subject/${subjectId}`);
     setSessions(res.data);
     setSessionDetails(null);
     setEditMode(false);
-    setSelectedHistorySubject(subjectId); // 👈 ADD THIS
+    setSelectedHistorySubject(subjectId);
   } catch (error) {
-    alert("Error fetching session history");
+    showToast("Error fetching session history", "error");
   }
 };
 
@@ -131,7 +143,7 @@ setTotalSessions(sessionCount);
       setEditableStudents(res.data.students);
       setEditMode(false);
     } catch (error) {
-      alert("Error fetching session details");
+      showToast("Error fetching session details", "error");
     }
   };
 
@@ -140,12 +152,18 @@ setTotalSessions(sessionCount);
 
 
   const fetchSubjectDefaulters = async (subjectId) => {
+  if (selectedDefaulterSubject === subjectId && defaulterList.length > 0) {
+    setDefaulterList([]);
+    setSelectedDefaulterSubject("");
+    return;
+  }
+
   try {
     const res = await api.get(`/attendance/defaulters/${subjectId}`);
     setDefaulterList(res.data);
     setSelectedDefaulterSubject(subjectId);
   } catch (error) {
-    alert("Error fetching defaulters");
+    showToast("Error fetching defaulters", "error");
   }
 };
 
@@ -181,28 +199,31 @@ setTotalSessions(sessionCount);
         }
       );
 
-      alert("Attendance updated successfully");
+      showToast("Attendance updated successfully", "success");
       setEditMode(false);
       fetchSessionDetails(sessionDetails.sessionId);
 
     } catch (error) {
-      alert("Error updating attendance");
+      showToast("Error updating attendance", "error");
     }
   };
 
 
 
   const deleteSession = async (sessionId) => {
-  const confirmDelete = window.confirm(
-    "Are you sure you want to delete this session?"
-  );
+  const confirmDelete = await confirm({
+    title: "Delete Session",
+    message: "Are you sure you want to delete this session?",
+    confirmText: "Delete",
+    cancelText: "Cancel",
+  });
 
   if (!confirmDelete) return;
 
   try {
     await api.delete(`/attendance/session/${sessionId}`);
 
-    alert("Session deleted successfully");
+    showToast("Session deleted successfully", "success");
 
     // Refresh sessions
     setSessionDetails(null);
@@ -212,7 +233,7 @@ setTotalSessions(sessionCount);
     fetchSessions(selectedHistorySubject);
 
   } catch (error) {
-    alert("Error deleting session");
+    showToast("Error deleting session", "error");
   }
 };
 
@@ -237,7 +258,7 @@ setTotalSessions(sessionCount);
       link.remove();
 
     } catch (error) {
-      alert("Error downloading CSV");
+      showToast("Error downloading CSV", "error");
     }
   };
 
@@ -301,26 +322,21 @@ setTotalSessions(sessionCount);
         {/* SESSION HISTORY */}
         <div className="card">
           <h2>Attendance History</h2>
-
-          <ul>
+          <p className="section-subtext">Pick a subject to view session history or export attendance.</p>
+          <div className="subject-action-grid">
             {subjects.map((sub) => (
-              <li key={sub._id}>
-                {sub.name} — {sub.division?.name}
-                <button
-                  style={{ marginLeft: "10px" }}
-                  onClick={() => fetchSessions(sub._id)}
-                >
-                  View Sessions
-                </button>
-                <button
-                  style={{ marginLeft: "10px" }}
-                  onClick={() => downloadCSV(sub._id)}
-                >
-                  Download CSV
-                </button>
-              </li>
+              <div className="subject-action-card" key={sub._id}>
+                <div className="subject-action-title">{sub.name}</div>
+                <div className="subject-action-meta">{sub.division?.name || "Division not assigned"}</div>
+                <div className="subject-action-buttons">
+                  <button onClick={() => fetchSessions(sub._id)}>View Sessions</button>
+                  <button className="btn-success" onClick={() => downloadCSV(sub._id)}>
+                    Download CSV
+                  </button>
+                </div>
+              </div>
             ))}
-          </ul>
+          </div>
 
           {sessions.length > 0 && (
             <div className="card">
@@ -349,8 +365,7 @@ setTotalSessions(sessionCount);
                         </button>
 
                         <button
-                          className="btn-danger"
-                          style={{ marginLeft: "8px" }}
+                          className="btn-danger ml-8"
                           onClick={() => deleteSession(session._id)}
                         >
                           Delete
@@ -378,11 +393,7 @@ setTotalSessions(sessionCount);
               {editMode && (
                 <button
                   onClick={saveAttendanceChanges}
-                  style={{
-                    marginLeft: "10px",
-                    backgroundColor: "green",
-                    color: "white",
-                  }}
+                  className="btn-success ml-10"
                 >
                   Save Changes
                 </button>
@@ -406,14 +417,7 @@ setTotalSessions(sessionCount);
                           onClick={() =>
                             editMode && toggleStatus(student._id)
                           }
-                          style={{
-                            cursor: editMode ? "pointer" : "default",
-                            color:
-                              student.status === "Present"
-                                ? "green"
-                                : "red",
-                            fontWeight: "bold",
-                          }}
+                          className={`${student.status === "Present" ? "text-success" : "text-danger"} bold ${editMode ? "clickable" : ""}`}
                         >
                           {student.status}
                         </td>
@@ -434,23 +438,23 @@ setTotalSessions(sessionCount);
         {/* ================= DEFAULTERS SECTION ================= */}
           <div className="card">
             <h2>Defaulters</h2>
-
-            <ul>
+            <p className="section-subtext">Quickly check students below attendance threshold by subject.</p>
+            <div className="subject-action-grid">
               {subjects.map((sub) => (
-                <li key={sub._id} style={{ marginBottom: "10px" }}>
-                  {sub.name}
-                  <button
-                    style={{ marginLeft: "10px" }}
-                    onClick={() => fetchSubjectDefaulters(sub._id)}
-                  >
-                    View Defaulters
-                  </button>
-                </li>
+                <div className="subject-action-card" key={sub._id}>
+                  <div className="subject-action-title">{sub.name}</div>
+                  <div className="subject-action-meta">{sub.division?.name || "Division not assigned"}</div>
+                  <div className="subject-action-buttons">
+                    <button onClick={() => fetchSubjectDefaulters(sub._id)}>
+                      View Defaulters
+                    </button>
+                  </div>
+                </div>
               ))}
-            </ul>
+            </div>
 
             {defaulterList.length > 0 && (
-              <div className="card" style={{ marginTop: "15px" }}>
+              <div className="card mt-15">
                 <h3>Defaulter List</h3>
 
                 <table>
@@ -466,7 +470,7 @@ setTotalSessions(sessionCount);
                       <tr key={index}>
                         <td>{d.student.name}</td>
                         <td>{d.student.email}</td>
-                        <td style={{ color: "red", fontWeight: "bold" }}>
+                        <td className="text-danger bold">
                           {d.percentage}%
                         </td>
                       </tr>
@@ -476,7 +480,7 @@ setTotalSessions(sessionCount);
               </div>
             )}
           </div>
-        <footer style={{ textAlign: "center", padding: "15px", color: "#777" }}>
+        <footer>
           © 2026 DYP-AttendX | Developed by Tanmay Kad
         </footer>
       </div>

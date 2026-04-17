@@ -6,7 +6,7 @@ const authMiddleware = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
 
 // Get All Divisions
-router.get("/", authMiddleware, getDivisions);
+router.get("/", getDivisions);
 
 // Admin Only - Create Division
 router.post(

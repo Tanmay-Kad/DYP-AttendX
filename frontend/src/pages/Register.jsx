@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
 import { Link } from "react-router-dom";
+import { useToast } from "../components/ToastContext";
 
 function Register() {
   const [name, setName] = useState("");
@@ -10,6 +11,7 @@ function Register() {
 
   const [divisions, setDivisions] = useState([]);
   const [selectedDivision, setSelectedDivision] = useState("");
+  const { showToast } = useToast();
 
   useEffect(() => {
     const fetchDivisions = async () => {
@@ -41,24 +43,27 @@ function Register() {
 
       await api.post("/auth/register", payload);
 
-      alert("Registration successful");
+      showToast("Registration successful", "success");
 
       setName("");
       setEmail("");
       setPassword("");
       setSelectedDivision("");
     } catch (error) {
-      alert(error.response?.data?.message || "Registration failed");
+      showToast(error.response?.data?.message || "Registration failed", "error");
     }
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
+    <div className="auth-container register-theme">
+      <div className="auth-card register-card">
+        <p className="auth-eyebrow register-eyebrow">Join The Platform</p>
         <h2>Create Account</h2>
+        <p className="auth-subtext register-subtext">Set up your profile to start managing attendance</p>
 
-        <form onSubmit={handleRegister}>
+        <form className="auth-form register-form" onSubmit={handleRegister}>
           <input
+            className="auth-field register-field"
             type="text"
             placeholder="Name"
             value={name}
@@ -67,6 +72,7 @@ function Register() {
           />
 
           <input
+            className="auth-field register-field"
             type="email"
             placeholder="Email"
             value={email}
@@ -75,6 +81,7 @@ function Register() {
           />
 
           <input
+            className="auth-field register-field"
             type="password"
             placeholder="Password"
             value={password}
@@ -83,6 +90,7 @@ function Register() {
           />
 
           <select
+            className="auth-field register-field"
             value={role}
             onChange={(e) => {
               setRole(e.target.value);
@@ -97,6 +105,7 @@ function Register() {
           {/* ✅ Division dropdown appears only for students */}
           {role === "student" && (
             <select
+              className="auth-field register-field"
               value={selectedDivision}
               onChange={(e) => setSelectedDivision(e.target.value)}
               required
@@ -110,10 +119,10 @@ function Register() {
             </select>
           )}
 
-          <button type="submit">Register</button>
+          <button className="auth-btn register-btn" type="submit">Register</button>
         </form>
 
-        <div className="auth-footer">
+        <div className="auth-footer register-footer">
           Already have an account? <Link to="/">Login</Link>
         </div>
       </div>

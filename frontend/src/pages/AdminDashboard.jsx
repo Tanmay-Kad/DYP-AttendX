@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
 import Navbar from "../components/Navbar";
+import { useToast } from "../components/ToastContext";
 
 function AdminDashboard() {
+  const { showToast } = useToast();
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -96,14 +98,14 @@ const fetchStudents = async () => {
 const removeTeacher = async (teacherId) => {
   try {
     await api.delete(`/auth/delete-teacher/${teacherId}`);
-    alert("Teacher removed successfully");
+    showToast("Teacher removed successfully", "success");
 
     // Refresh list
     fetchApprovedTeachers();
     fetchPendingTeachers();
 
   } catch (error) {
-    alert("Error removing teacher");
+    showToast("Error removing teacher", "error");
   }
 };
 
@@ -111,11 +113,11 @@ const removeTeacher = async (teacherId) => {
 const deleteDepartment = async (departmentId) => {
   try {
     await api.delete(`/departments/${departmentId}`);
-    alert("Department deleted successfully");
+    showToast("Department deleted successfully", "success");
 
     fetchDepartments(); // refresh list
   } catch (error) {
-    alert("Error deleting department");
+    showToast("Error deleting department", "error");
   }
 };
 
@@ -124,11 +126,11 @@ const deleteDepartment = async (departmentId) => {
 const deleteDivision = async (divisionId) => {
   try {
     await api.delete(`/divisions/${divisionId}`);
-    alert("Division deleted successfully");
+    showToast("Division deleted successfully", "success");
 
     fetchDivisions(); // refresh list
   } catch (error) {
-    alert("Error deleting division");
+    showToast("Error deleting division", "error");
   }
 };
 
@@ -136,11 +138,11 @@ const deleteDivision = async (divisionId) => {
 const deleteSubject = async (subjectId) => {
   try {
     await api.delete(`/subjects/${subjectId}`);
-    alert("Subject deleted successfully");
+    showToast("Subject deleted successfully", "success");
 
     fetchSubjects(); // refresh list
   } catch (error) {
-    alert("Error deleting subject");
+    showToast("Error deleting subject", "error");
   }
 };
 
@@ -210,13 +212,13 @@ const deleteSubject = async (subjectId) => {
   const approveTeacher = async (teacherId) => {
     try {
       await api.put(`/auth/approve-teacher/${teacherId}`);
-      alert("Teacher approved successfully");
+      showToast("Teacher approved successfully", "success");
 
       // Refresh pending list
       fetchPendingTeachers();
 
     } catch (error) {
-      alert("Error approving teacher");
+      showToast("Error approving teacher", "error");
     }
   };
 
@@ -548,7 +550,7 @@ const deleteSubject = async (subjectId) => {
           </tbody>
         </table>
       </div>
-      <footer style={{ textAlign: "center", padding: "15px", color: "#777" }}>
+      <footer>
         © 2026 DYP-AttendX | Developed by Tanmay Kad
       </footer>
     </div>
